@@ -1,13 +1,11 @@
 import random, pygame, sys
 from pygame.locals import *
-import threading
 boxSize=15
 width, height = 900, 600
 size = widthW, heightW = width+200, height+200
 screen = pygame.display.set_mode(size)
 mouseClicked = False
 map={}
-
 
 #0- white, 1- black, 2- red, 3-green
 boxstart = pygame.image.load("boxstart.png")
@@ -24,8 +22,6 @@ boxtrect = boxt.get_rect()
 boxtt = pygame.image.load("checked.png")
 boxttrect = boxtt.get_rect()
 
-
-
 kappaX=[boxSize,0,-boxSize,0]
 kappaY=[0,boxSize,0,-boxSize]
 
@@ -39,8 +35,6 @@ def drawSolution(x,y,p,sol):
             sol.append([x + kappaX[i], y + kappaY[i]])
             return drawSolution(x + kappaX[i], y + kappaY[i], p - 1, sol)
 
-
-
 def ifXYinBox(x, y):
     return True if x in map and y in map[x] else False
 
@@ -52,21 +46,15 @@ def startSimulation():
             y = b * boxSize + (heightW - height) / 2
 
             if map[x][y][0] == 2 or map[x][y][0] == 5:
-                if ifXYinBox(x+boxSize,y) and (map[x + boxSize][y][0] == 0 or map[x + boxSize][y][0] == 3): map[x + boxSize][y] = [4,map[x][y][1]+1]
-                if ifXYinBox(x,y+boxSize) and (map[x][y + boxSize][0] == 0 or map[x + boxSize][y][0] == 3): map[x][y + boxSize] = [4,map[x][y][1]+1]
-                if ifXYinBox(x-boxSize,y) and (map[x - boxSize][y][0] == 0 or map[x + boxSize][y][0] == 3): map[x - boxSize][y] = [4,map[x][y][1]+1]
-                if ifXYinBox(x,y-boxSize) and (map[x][y - boxSize][0] == 0 or map[x + boxSize][y][0] == 3): map[x][y - boxSize] = [4,map[x][y][1]+1]
-
+                for i in range(4):
+                    xx, yy = x+kappaX[i], y+kappaY[i]
+                    if ifXYinBox(xx, yy) and (map[xx][yy][0] == 0 or map[xx][yy][0] == 3): map[xx][yy] = [4, map[x][y][1] + 1]
 
     for a in range(width // boxSize):
         for b in range(height // boxSize):
             x = a * boxSize + (widthW - width) / 2
             y = b * boxSize + (heightW - height) / 2
             if map[x][y][0] == 4: map[x][y][0] = 5
-
-
-
-
 
 def draw():
     # draw
@@ -93,7 +81,6 @@ def draw():
                 boxttrect.x, boxttrect.y = x, y
                 screen.blit(boxtt, boxttrect)
 
-
 def drawMap():
     for a in range(width//boxSize + 1):
         x = a * boxSize + (widthW - width) / 2
@@ -102,52 +89,42 @@ def drawMap():
             y=b*boxSize+(heightW-height)/2
             map[x][y]=[0]
 
-
 def instantDraw(boxEndw):
-    print("boxEndw = {}".format(boxEndw))
     while not (len(boxEndw) > 0 and len(map[boxEndw[0]][boxEndw[1]]) > 1):
         startSimulation()
     map[boxEndw[0]][boxEndw[1]][0] = 3
-    print(map[boxEndw[0]][boxEndw[1]][1])
     sol = drawSolution(boxEndw[0], boxEndw[1], map[boxEndw[0]][boxEndw[1]][1], [])
-    print("sol = {}".format(sol))
     for x in sol:
         if map[x[0]][x[1]][0] != 2:
             map[x[0]][x[1]][0] = 4
 
+def drawText(text, x, y):
+    font = pygame.font.SysFont('Arial', 20)
+    text = font.render(text, True, (0, 0, 0))
+    screen.blit(text, (x,y))
 
 def main():
-    pygame.font.init()
-    print(pygame.font.get_fonts())
-    font = pygame.font.SysFont('Arial', 36)
-    text = font.render('Startgame', True, (0, 0, 0))
-
+    pygame.init()
+    screen.fill((255, 255, 255))
+    drawText('Controls:', width/2 - 150, 100+height+30)
+    drawText('Control Points: S - Start point, E - End point', width / 2 + 150, 130 + height)
+    drawText('Create obstacles by mouse', width / 2 - 150, 160 + height)
+    drawText('Simulation: W - StepByStep, E - Instant', width / 2 + 150, 160 + height)
 
     solved=False
-    solution=[]
     mouseClicked = False
     simulation=False
-    pygame.init()
-    speed = [1, 1]
-    black = 0, 0, 0
 
     boxStartw = []
     boxEndw = []
 
     drawMap()
 
-
-    print(map)
-
-
-
     mouse_x = 0
     mouse_y = 0
-
     pygame.mouse.set_cursor(*pygame.cursors.arrow)
 
-    screen.fill((255, 255, 255))
-    screen.blit(text, (width / 2, 0))
+    
     for a in range(width // boxSize + 2):
         x = (a - 1) * boxSize + (widthW - width) / 2
         for b in range(height // boxSize + 2):
@@ -166,7 +143,7 @@ def main():
             elif event.type == MOUSEBUTTONUP:
                 mouseClicked = False
 
-            elif event.type == KEYDOWN:
+            elif event.type == KEYDOWN and not mouseClicked:
                 if event.key == K_s:
                     curr_x = (mouse_x - 100) % 15
                     curr_y = (mouse_y - 100) % 15
@@ -175,13 +152,12 @@ def main():
                     x = mouse_x - 100 - curr_x + (widthW - width) / 2
                     y = mouse_y - 100 - curr_y + (heightW - height) / 2
                     boxStartw = [x,y]
-                    print("{} {}".format(x,y))
                     map[x][y] = [2,0]
                 elif event.key == K_d:
                     curr_x = (mouse_x - 100) % 15
                     curr_y = (mouse_y - 100) % 15
                     if boxEndw:
-                        map[boxEndw[0]][boxEndw[1]][0]=[0]
+                        map[boxEndw[0]][boxEndw[1]]=[0]
                     x = mouse_x - 100 - curr_x + (widthW - width) / 2
                     y = mouse_y - 100 - curr_y + (heightW - height) / 2
                     boxEndw = [x, y]
@@ -198,10 +174,6 @@ def main():
                     map[boxEndw[0]][boxEndw[1]] = [map[boxEndw[0]][boxEndw[1]][0]]
                     instantDraw(boxEndw)
 
-
-
-
-
         if mouseClicked:
             if mouse_x >100 and mouse_x <100+width and mouse_y >100 and mouse_y <100+height:
                 curr_x = (mouse_x - 100)%15
@@ -217,12 +189,6 @@ def main():
                         if map[x][y][0]>3:
                             map[x][y]=[0]
 
-                map[boxEndw[0]][boxEndw[1]]=[3]
-
-
-
-        #t1 = threading.Thread(target=draw)
-        #t1.start()
         draw()
         if simulation :
             startSimulation()
@@ -237,11 +203,7 @@ def main():
                     map[x[0]][ x[1]][0] = 4
                 map[boxStartw[0]][boxStartw[1]][0]=2
 
-
-
         pygame.display.flip()
-
-
 
 
 
