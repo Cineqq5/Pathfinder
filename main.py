@@ -99,7 +99,7 @@ def instantDraw(boxEndw):
             map[x[0]][x[1]][0] = 4
 
 def drawText(text, x, y):
-    font = pygame.font.SysFont('Arial', 20)
+    font = pygame.font.SysFont(pygame.font.get_fonts()[0], 20)
     text = font.render(text, True, (0, 0, 0))
     screen.blit(text, (x,y))
 
