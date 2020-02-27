@@ -98,18 +98,11 @@ def instantDraw(boxEndw):
         if map[x[0]][x[1]][0] != 2:
             map[x[0]][x[1]][0] = 4
 
-def drawText(text, x, y):
-    font = pygame.font.SysFont(pygame.font.get_fonts()[0], 20)
-    text = font.render(text, True, (0, 0, 0))
-    screen.blit(text, (x,y))
 
 def main():
     pygame.init()
     screen.fill((255, 255, 255))
-    drawText('Controls:', width/2 - 150, 100+height+30)
-    drawText('Control Points: S - Start point, E - End point', width / 2 + 150, 130 + height)
-    drawText('Create obstacles by mouse', width / 2 - 150, 160 + height)
-    drawText('Simulation: W - StepByStep, E - Instant', width / 2 + 150, 160 + height)
+
 
     solved=False
     mouseClicked = False
